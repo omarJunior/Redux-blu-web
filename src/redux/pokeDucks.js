@@ -2,6 +2,7 @@ import axios from "axios";
 
 
 //constantes
+//Estado global de la aplicacion
 const dataInicial = {
     count : 0,
     next : null,
@@ -12,6 +13,7 @@ const dataInicial = {
 const OBTENER_POKEMON_EXITO = 'OBTENER_POKEMON_EXITO'
 const SIGUIENTE_OBTENER_POKEMON_EXITO = 'SIGUIENTE_OBTENER_POKEMON_EXITO'
 const ANTERIOR_OBTENER_POKEMON_EXITO = 'ANTERIOR_OBTENER_POKEMON_EXITO'
+const POKE_INFO_EXITO = 'POKE_INFO_EXITO'
 
 //reducer
 export default function pokeReducer(state = dataInicial, action){
@@ -25,24 +27,59 @@ export default function pokeReducer(state = dataInicial, action){
         case ANTERIOR_OBTENER_POKEMON_EXITO:
             return {...state, ...action.payload}
 
+        case POKE_INFO_EXITO:
+            return {...state, unPokemon: action.payload}
+
         default:
             return state
     }
 }
 
-//acciones
-export const obtenerPokemonesAccion = ()=> async(dispatch, getState)=>{
+//acciones-La unica forma de cambiar el estado es emitir una accion, el dispatch activa el reducer
+export const unPokeDetalleAccion = (url = 'https://pokeapi.co/api/v2/pokemon/1/')=> async(dispatch)=>{
+
+    if(localStorage.getItem(url)){
+        dispatch({
+            type: POKE_INFO_EXITO,
+            payload: JSON.parse(localStorage.getItem(url))
+        }) 
+        console.log('Desde el localStorage')
+        return
+    }
+
+    try {
+        console.log('Desde la api')
+        const resp = await axios.get(url)
+        dispatch({
+            type: POKE_INFO_EXITO,
+            payload: {
+                nombre: resp.data.name,
+                ancho: resp.data.weight,
+                alto: resp.data.height,
+                foto: resp.data.sprites.front_default
+            }
+        })  
+        localStorage.setItem(url, JSON.stringify({
+            nombre: resp.data.name,
+            ancho: resp.data.weight,
+            alto: resp.data.height,
+            foto: resp.data.sprites.front_default
+        }))
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+export const obtenerPokemonesAccion = ()=> async(dispatch)=>{
 
     if(localStorage.getItem('offset=0')){
-        console.log('Datos desde el localstorage')
         dispatch({
             type: OBTENER_POKEMON_EXITO,
             payload: JSON.parse(localStorage.getItem('offset=0'))
         })
     }else{
         try {
-            console.log('Datos desde la API')
-            const resp = await axios.get(`https://pokeapi.co/api/v2/pokemon?offset=0&limit=20/`)
+            const resp = await axios.get(`https://pokeapi.co/api/v2/pokemon?offset=0&limit=10/`)
             dispatch({
                 type: OBTENER_POKEMON_EXITO,
                 payload: resp.data

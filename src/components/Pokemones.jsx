@@ -1,16 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { obtenerPokemonesAccion, siguientePokemonAction, anteriorPokemonAccion } from '../redux/pokeDucks'
-
+import { obtenerPokemonesAccion, siguientePokemonAction, anteriorPokemonAccion, unPokeDetalleAccion } from '../redux/pokeDucks'
+import Detalle from './Detalle'
 
 const Pokemones = () => {
-    //el dispatch llama la accion, y el useSelector es el que mostrara el arreglo
+    //el dispatch llama la accion
     const dispatch = useDispatch()
 
     //el devuelve todo lo que tenemos en la tienda
     const pokemones = useSelector(store => store.pokemones.results)
     const next = useSelector(store => store.pokemones.next)
     const previous = useSelector(store => store.pokemones.previous)
+    
+    useEffect(()=> {
+        dispatch(obtenerPokemonesAccion())
+    }, [])
     
   return (
     <div className='row'>
@@ -26,14 +30,19 @@ const Pokemones = () => {
                     pokemones.map((item, index)=> (
                         <li key={index} className='list-group-item text-uppercase'>
                             {item.name}
-                            <button className='btn btn-dark btn-sm float-right'>Info</button>
+                            <button 
+                                className='btn btn-dark btn-sm float-right' 
+                                onClick={()=>dispatch(unPokeDetalleAccion(item.url))}>
+                                    Info
+                            </button>
                         </li>
                     ))
                 }
             </ul>
         </div>
         <div className="col-md-6">
-           <h3> Detalle de un pokemon</h3>
+            <h3>Detalle Pokemon</h3>
+           <Detalle />
         </div>
         
     </div>
